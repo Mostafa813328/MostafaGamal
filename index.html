@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Beta - Mostafa Gamal</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f0f2f5;
+            font-family: 'Cairo', sans-serif;
+            padding: 20px;
+        }
+        .container {
+            max-width: 100%;
+            padding: 20px;
+            background-color: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        h2 {
+            margin-bottom: 30px;
+            color: #333;
+            text-align: center;
+            font-size: 1.75rem; /* Use rem for responsive font size */
+            font-weight: bold;
+        }
+        .btn-primary {
+            background-color: #007bff;
+            border-color: #007bff;
+            font-size: 1.125rem; /* Use rem for responsive font size */
+            padding: 10px 20px;
+        }
+        table {
+            margin-top: 20px;
+            font-size: 1rem; /* Use rem for responsive font size */
+        }
+        th, td {
+            text-align: center;
+            padding: 0.75rem; /* Use rem for responsive padding */
+        }
+        th {
+            background-color: #007bff;
+            color: #ffffff;
+        }
+        td {
+            background-color: #f9f9f9;
+        }
+        #resultSection {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid #ddd;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            margin-top: 20px;
+        }
+        #resultSection p {
+            font-size: 1.125rem; /* Use rem for responsive font size */
+            margin: 10px 0;
+        }
+        #resultSection p span {
+            font-weight: bold;
+            color: #007bff;
+        }
+        #resultSection .icon {
+            margin-right: 8px;
+        }
+        #resultTitle {
+            font-size: 1.5rem; /* Use rem for responsive font size */
+            color: #333;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 576px) {
+            h2 {
+                font-size: 1.5rem; /* Adjust font size for small screens */
+            }
+            .btn-primary {
+                font-size: 1rem; /* Adjust font size for small screens */
+                padding: 8px 16px;
+            }
+            table {
+                font-size: 0.875rem; /* Adjust font size for small screens */
+            }
+            th, td {
+                padding: 0.5rem; /* Adjust padding for small screens */
+            }
+            #resultSection p {
+                font-size: 1rem; /* Adjust font size for small screens */
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Beta - Mostafa Gamal</h2>
+    <form id="cashierForm">
+        <div class="mb-3">
+            <label for="totalAmount" class="form-label">المبلغ الإجمالي</label>
+            <input type="number" class="form-control" id="totalAmount" required>
+        </div>
+        <div class="form-check mb-3">
+            <input class="form-check-input" type="checkbox" id="specialCustomerCheckbox">
+            <label class="form-check-label" for="specialCustomerCheckbox">
+                عميل مميز
+            </label>
+        </div>
+        <div class="mb-3">
+            <label for="customerNumber" class="form-label">رقم العميل المميز</label>
+            <input type="text" class="form-control" id="customerNumber" disabled required>
+        </div>
+        <button type="button" class="btn btn-primary" onclick="calculate()">احسب</button>
+    </form>
+    
+    <div id="resultSection">
+        <h3 id="resultTitle">النتيجة</h3>
+        <p id="result"></p>
+    </div>
+</div>
+
+<div class="container">
+    <h3>جدول العمليات</h3>
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>التاريخ</th>
+                <th>المبلغ قبل الضريبة</th>
+                <th>خصم</th>
+                <th>الضريبة</th>
+                <th>المبلغ النهائي</th>
+                <th>عميل مميز</th>
+                <th>حذف</th>
+            </tr>
+        </thead>
+        <tbody id="orderTableBody">
+            <!-- سيتم إضافة العمليات هنا -->
+        </tbody>
+        <tfoot>
+            <tr>
+                <th colspan="6">الإجمالي</th>
+                <th id="totalSum">0.00 جنيه</th>
+            </tr>
+        </tfoot>
+    </table>
+</div>
+
+<script>
+    let totalSum = 0;
+
+    document.getElementById('specialCustomerCheckbox').addEventListener('change', function() {
+        const customerNumberInput = document.getElementById('customerNumber');
+        customerNumberInput.disabled = !this.checked;
+        customerNumberInput.value = ''; // Reset value when unchecked
+    });
+
+    window.onload = function() {
+        loadTableData();
+    };
+
+    function calculate() {
+        let totalAmount = parseFloat(document.getElementById('totalAmount').value);
+        let isSpecialCustomer = document.getElementById('specialCustomerCheckbox').checked;
+        let customerNumber = document.getElementById('customerNumber').value;
+
+        if (isSpecialCustomer && customerNumber === '') {
+            alert('يرجى إدخال رقم العميل المميز');
+            return;
+        }
+
+        let initialAmount = totalAmount;
+        let discount = 0;
+
+        if (isSpecialCustomer) {
+            discount = initialAmount * 0.25;
+            totalAmount -= discount;
+        }
+
+        let tax = Math.ceil(totalAmount * 0.12);
+        let finalAmount = totalAmount + tax;
+
+        totalSum += finalAmount;
+
+        let today = new Date().toLocaleDateString();
+
+        document.getElementById('result').innerHTML = `
+            <p><span class="icon">💰</span>السعر قبل الضريبة: <span>${initialAmount.toFixed(2)}</span> جنيه</p>
+            <p><span class="icon">💸</span>الخصم: <span>${discount.toFixed(2)}</span> جنيه</p>
+            <p><span class="icon">🧾</span>الضريبة: <span>${tax.toFixed(2)}</span> جنيه</p>
+            <p><span class="icon">🔢</span>السعر النهائي: <span>${finalAmount.toFixed(2)}</span> جنيه</p>
+        `;
+
+        let tableBody = document.getElementById('orderTableBody');
+        let newRow = tableBody.insertRow();
+        newRow.innerHTML = `
+            <td>${today}</td>
+            <td>${initialAmount.toFixed(2)}</td>
+            <td>${discount.toFixed(2)}</td>
+            <td>${tax.toFixed(2)}</td>
+            <td>${finalAmount.toFixed(2)}</td>
+            <td>${isSpecialCustomer ? customerNumber : 'لا'}</td>
+            <td><button class="btn btn-danger" onclick="deleteRow(this, ${finalAmount})">حذف</button></td>
+        `;
+
+        document.getElementById('totalSum').innerText = totalSum.toFixed(2) + ' جنيه';
+
+        saveTableData();
+    }
+
+    function deleteRow(button, amount) {
+        let row = button.parentElement.parentElement;
+        row.remove();
+
+        totalSum -= amount;
+        document.getElementById('totalSum').innerText = totalSum.toFixed(2) + ' جنيه';
+
+        saveTableData();
+    }
+
+    function saveTableData() {
+        const tableBody = document.getElementById('orderTableBody').innerHTML;
+        const totalSumValue = document.getElementById('totalSum').innerText;
+
+        localStorage.setItem('tableData', tableBody);
+        localStorage.setItem('totalSum', totalSumValue);
+    }
+
+    function loadTableData() {
+        const storedTableData = localStorage.getItem('tableData');
+        const storedTotalSum = localStorage.getItem('totalSum');
+
+        if (storedTableData) {
+            document.getElementById('orderTableBody').innerHTML = storedTableData;
+        }
+
+        if (storedTotalSum) {
+            document.getElementById('totalSum').innerText = storedTotalSum;
+            totalSum = parseFloat(storedTotalSum.replace(' جنيه', ''));
+        }
+    }
+</script>
+
+</body>
+</html>
